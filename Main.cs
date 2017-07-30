@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using System.Xml;
 
 namespace ishtml5
 {
@@ -26,9 +27,36 @@ namespace ishtml5
             // Set name to query string or body data
             url = url ?? data?.url;
 
-            return url == null
-                ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a url on the query string or in the request body")
-                : req.CreateResponse(HttpStatusCode.OK, "Hello " + url);
+            // Check a url param was passed
+            if (url == null)
+            {
+                return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a url on the query string or in the request body");
+            }
+
+            // Validate it's a URL
+            var isUrl = true;
+            if (!isUrl)
+            {
+                return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a VALID url");
+            }
+            
+            // Make a web request for that URL document and then parse it to see if it has a HTML5 doctype
+            var client = new HttpClient();
+            var response = await client.GetAsync(url);
+            var html = (await response.Content.ReadAsStringAsync()).Trim();
+            var hasDoctype = html.StartsWith("<!doctype", System.StringComparison.OrdinalIgnoreCase);
+            if (!hasDoctype)
+            {
+                return req.CreateResponse(HttpStatusCode.OK, false);
+            }
+
+            var htmlSnippet = html.Substring(0, html.IndexOf(">")) + "<lol></lol>";
+            var xml = new XmlDocument();
+            xml.LoadXml(htmlSnippet);
+            
+            var isHtml5 = xml.DocumentType.Name.Equals("html", System.StringComparison.OrdinalIgnoreCase);
+
+            return req.CreateResponse(HttpStatusCode.OK, isHtml5);
         }
     }
 }
