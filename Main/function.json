@@ -16,7 +16,7 @@
     },
     {
       "type": "table",
-      "name": "testedUrlsInTable",
+      "name": "input",
       "tableName": "testedUrlsTable",
       "partitionKey": "TopLevelDomain",
       "rowKey": "Url",
@@ -26,7 +26,7 @@
     },
     {
       "type": "table",
-      "name": "testedUrlsOutTable",
+      "name": "output",
       "tableName": "testedUrlsTable",
       "partitionKey": "TopLevelDomain",
       "rowKey": "Url",

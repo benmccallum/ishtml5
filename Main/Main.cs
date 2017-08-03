@@ -15,11 +15,10 @@ namespace ishtml5
         [FunctionName("Main")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]HttpRequestMessage req, 
-            IQueryable<TestedUrl> testedUrlsInTable,
-            ICollector<TestedUrl> testedUrlsOutTable,
-            TraceWriter log)
+            IQueryable<TestedUrl> input,
+            ICollector<TestedUrl> output)
         {
-            log.Info("Main was triggered.");
+            //log.Info("Main was triggered.");
 
             // Extract query parameter
             string url = req.GetQueryNameValuePairs()
@@ -42,7 +41,7 @@ namespace ishtml5
                 return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a VALID url");
             }
 
-            var isHtml5 = await GetResult(uri, testedUrlsInTable, testedUrlsOutTable);
+            var isHtml5 = await GetResult(uri, input, output);
 
             return req.CreateResponse(HttpStatusCode.OK, isHtml5);
         }
