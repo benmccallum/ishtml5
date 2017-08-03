@@ -20,7 +20,7 @@
       "tableName": "testedUrlsTable",
       "partitionKey": "TopLevelDomain",
       "rowKey": "Url",
-      "take": 10,
+      "take": "10",
       "connection": "ishtml5storage_STORAGE",
       "direction": "in"
     },

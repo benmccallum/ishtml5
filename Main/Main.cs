@@ -42,7 +42,7 @@ namespace ishtml5
                 return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a VALID url");
             }
 
-            var isHtml5 = GetResult(uri, testedUrlsInTable, testedUrlsOutTable);
+            var isHtml5 = await GetResult(uri, testedUrlsInTable, testedUrlsOutTable);
 
             return req.CreateResponse(HttpStatusCode.OK, isHtml5);
         }
