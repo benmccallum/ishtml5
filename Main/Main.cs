@@ -85,6 +85,11 @@ namespace ishtml5
         {
             public bool IsHtml5 { get; set; }
 
+            public TestedUrl()
+            {
+                    
+            }
+
             public TestedUrl(Uri uri, bool isHtml5)
             {
                 this.PartitionKey = uri.Host;
