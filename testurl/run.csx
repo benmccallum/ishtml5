@@ -3,6 +3,11 @@
 using System.Net;
 using Microsoft.WindowsAzure.Storage.Table;
 
+// Re-use HttpClient to avoid port exhaustion 
+// https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices
+// https://docs.microsoft.com/en-us/azure/architecture/antipatterns/improper-instantiation/
+private static HttpClient httpClient = new HttpClient();
+
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
@@ -75,8 +80,7 @@ private static async Task<bool> Test(Uri uri,
     log.Info("Testing: " + uri);
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
-    var client = new HttpClient();
-    var response = await client.GetAsync(uri);
+    var response = await httpClient.GetAsync(uri);
     var html = (await response.Content.ReadAsStringAsync()).Trim();
     var isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
 
