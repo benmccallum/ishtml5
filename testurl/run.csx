@@ -31,7 +31,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
     if (!isUrl)
     {
         log.Info("Validation failed: url param was not a real url.");
-        return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a VALID url");
+        return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a valid url");
     }
 
     var isHtml5 = await GetResult(uri, log, inputTable, outputTable);
