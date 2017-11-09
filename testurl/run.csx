@@ -83,7 +83,7 @@ private static async Task<bool> GetResult(Uri uri,
 private static async Task<bool> Test(Uri uri,
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
-    ICollector<TestedUrl> outputTable)
+    CloudTable outputTable)
 {
     log.Info("Testing: " + uri);
 
