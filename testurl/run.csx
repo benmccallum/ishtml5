@@ -58,14 +58,22 @@ private static async Task<bool> GetResult(Uri uri,
         log.Info("Cache miss: no match for url.");
         return await Test(uri, log, inputTable, outputTable);
     }
+    else
+    {
+        log.Info("Cache hit: will now check for freshness.");
+    }
 
     // TODO: Probably push this into a config
     // TODO: Wait for answer on https://stackoverflow.com/questions/17325445/timestamp-query-in-azure to see if I can include this in initial query and save bandwidth
     var oneWeekAgo = new DateTimeOffset(DateTime.UtcNow.AddDays(-7));
     if (testedUrl.Timestamp >= oneWeekAgo)
     {
-        log.Info("Returning from cache.");
+        log.Info("Fresh! Returning from cache.");
         return testedUrl.IsHtml5;
+    }
+    else
+    {
+        log.Info("Stale. Looking up again. Timestamp was: " + testedUrl.Timestamp);
     }
 
     // Else get a fresh one and store in cache
