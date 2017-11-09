@@ -11,7 +11,7 @@ private static HttpClient httpClient = new HttpClient();
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
-    ICollector<TestedUrl> outputTable
+    CloudTable outputTable
 )
 {
     log.Info("TestUrl function was triggered.");
@@ -47,7 +47,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
 private static async Task<bool> GetResult(Uri uri,
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
-    ICollector<TestedUrl> outputTable)
+    CloudTable outputTable)
 {
     // Try get from cache if recent enough
     var q = new TestedUrl(uri, false);
@@ -73,7 +73,7 @@ private static async Task<bool> GetResult(Uri uri,
     }
     else
     {
-        log.Info("Stale. Looking up again. Timestamp was: " + testedUrl.Timestamp);
+        log.Info("Stale. Looking up again to replace existing. Timestamp was: " + testedUrl.Timestamp);
     }
 
     // Else get a fresh one and store in cache
@@ -95,7 +95,8 @@ private static async Task<bool> Test(Uri uri,
     var testedUrl = new TestedUrl(uri, isHtml5);
 
     log.Info("Caching: " + uri);
-    outputTable.Add(testedUrl);    
+    var op = new TableOperation.InsertOrReplace(testedUrl);
+    outputTable.ExecuteAsync(op);    
 
     return testedUrl.IsHtml5;
 }
