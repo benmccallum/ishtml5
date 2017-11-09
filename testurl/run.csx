@@ -95,7 +95,7 @@ private static async Task<bool> Test(Uri uri,
     var testedUrl = new TestedUrl(uri, isHtml5);
 
     log.Info("Caching: " + uri);
-    var op = new TableOperation.InsertOrReplace(testedUrl);
+    var op = TableOperation.InsertOrReplace(testedUrl);
     outputTable.ExecuteAsync(op);    
 
     return testedUrl.IsHtml5;
