@@ -103,7 +103,7 @@ private static async Task<bool?> Test(Uri uri,
             isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
         }
     }
-    catch (Exception ex)
+    catch (Exception)
     {
         log.Info("Error: GET for url '" + uri + "' failed with an exception.");
     }
