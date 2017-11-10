@@ -89,27 +89,28 @@ private static async Task<bool?> Test(Uri uri,
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
     HttpResponseMessage response = null;
+    bool? isHtml5 = null;
     try
     {
         response = await httpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode)
         {
             log.Info("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
-            return null;
+        }
+        else
+        {
+            var html = (await response.Content.ReadAsStringAsync()).Trim();
+            isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
         }
     }
     catch (Exception ex)
     {
         log.Info("Error: GET for url '" + uri + "' failed with an exception.");
-        return null;
     }
     
-    var html = (await response.Content.ReadAsStringAsync()).Trim();
-    var isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
-
     var testedUrl = new TestedUrl(uri, isHtml5);
 
-    log.Info("Caching: " + uri);
+    log.Info("Caching: " + uri + " with result " + isHtml5.ToString());
     var op = TableOperation.InsertOrReplace(testedUrl);
     outputTable.ExecuteAsync(op);    
 
