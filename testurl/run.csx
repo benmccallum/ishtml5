@@ -122,7 +122,7 @@ private static async Task<bool?> Test(Uri uri,
 /// </summary>
 public class TestedUrl : TableEntity
 {
-    public bool IsHtml5 { get; set; }
+    public bool? IsHtml5 { get; set; }
 
     public TestedUrl()
     {
