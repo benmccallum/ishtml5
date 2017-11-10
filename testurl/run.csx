@@ -88,12 +88,22 @@ private static async Task<bool?> Test(Uri uri,
     log.Info("Testing: " + uri);
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
-    var response = await httpClient.GetAsync(uri);
-    if (!response.IsSuccessStatusCode)
+    HttpResponseMessage response = null;
+    try
     {
-        log.Info("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
+        response = await httpClient.GetAsync(uri);
+        if (!response.IsSuccessStatusCode)
+        {
+            log.Info("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
+            return null;
+        }
+    }
+    catch (Exception ex)
+    {
+        log.Info("Error: GET for url '" + uri + "' failed with an exception.");
         return null;
     }
+    
     var html = (await response.Content.ReadAsStringAsync()).Trim();
     var isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
 
