@@ -44,7 +44,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
     return req.CreateResponse(HttpStatusCode.OK, isHtml5);
 }
 
-private static async Task<bool> GetResult(Uri uri,
+private static async Task<bool?> GetResult(Uri uri,
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable)
@@ -80,7 +80,7 @@ private static async Task<bool> GetResult(Uri uri,
     return await Test(uri, log, inputTable, outputTable);
 }
 
-private static async Task<bool> Test(Uri uri,
+private static async Task<bool?> Test(Uri uri,
     TraceWriter log,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable)
@@ -89,6 +89,11 @@ private static async Task<bool> Test(Uri uri,
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
     var response = await httpClient.GetAsync(uri);
+    if (!response.IsSuccessStatusCode)
+    {
+        log.Info("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
+        return null;
+    }
     var html = (await response.Content.ReadAsStringAsync()).Trim();
     var isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
 
