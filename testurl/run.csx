@@ -17,6 +17,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
 {
     log.LogInformation("TestUrl function was triggered.");
 
+    // Support TLS 1.2 as well...
+    System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
     // Extract query parameter
     string url = req.GetQueryNameValuePairs()
         .FirstOrDefault(q => string.Compare(q.Key, "url", true) == 0)
@@ -52,7 +55,7 @@ private static async Task<bool?> GetResult(Uri uri,
 {
     // Try get from cache if recent enough
     var q = new TestedUrl(uri, false);
-    log.LogInformation("Searching for: " + q.PartitionKey + " " + q.RowKey);
+    log.LogInformation("Searching for: PartitionKey '{q.PartitionKey}' and RowKey '{q.RowKey}'.", q.PartitionKey, q.RowKey);
     var testedUrl = inputTable.Where(x => x.PartitionKey == q.PartitionKey && x.RowKey == q.RowKey).SingleOrDefault();
     if (testedUrl == null) 
     {
@@ -74,7 +77,7 @@ private static async Task<bool?> GetResult(Uri uri,
     }
     else
     {
-        log.LogInformation("Stale. Looking up again to replace existing. Timestamp was: " + testedUrl.Timestamp);
+        log.LogInformation("Stale. Looking up again to replace existing. Timestamp was: {testedUrl.Timestamp}", testedUrl.Timestamp);
     }
 
     // Else get a fresh one and store in cache
@@ -86,7 +89,7 @@ private static async Task<bool?> Test(Uri uri,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable)
 {
-    log.LogInformation("Testing: " + uri);
+    log.LogInformation("Testing: {uri}", uri);
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
     HttpResponseMessage response = null;
@@ -96,7 +99,7 @@ private static async Task<bool?> Test(Uri uri,
         response = await httpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode)
         {
-            log.LogInformation("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
+            log.LogInformation("Error: GET for url '{uri}' failed with status code '{response.StatusCode}'", uri, response.StatusCode);
         }
         else
         {
@@ -106,12 +109,12 @@ private static async Task<bool?> Test(Uri uri,
     }
     catch (Exception ex)
     {
-        log.LogError(default(EventId), ex, "Error: GET for url '" + uri + "' failed with an exception.");
+        log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception.", uri);
     }
     
     var testedUrl = new TestedUrl(uri, isHtml5);
 
-    log.LogInformation("Caching: " + uri + " with result " + isHtml5.ToString());
+    log.LogInformation("Caching: '{uri}' with result '{isHtml5}'", uri, isHtml5);
     var op = TableOperation.InsertOrReplace(testedUrl);
     await outputTable.ExecuteAsync(op);    
 
