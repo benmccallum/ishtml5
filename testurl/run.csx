@@ -1,6 +1,7 @@
 #r "Microsoft.WindowsAzure.Storage"
 
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Table;
 
 // Re-use HttpClient to avoid port exhaustion 
@@ -9,7 +10,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 private static HttpClient httpClient = new HttpClient();
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
-    TraceWriter log,
+    ILogger log,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable
 )
@@ -45,7 +46,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
 }
 
 private static async Task<bool?> GetResult(Uri uri,
-    TraceWriter log,
+    ILogger log,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable)
 {
@@ -55,12 +56,12 @@ private static async Task<bool?> GetResult(Uri uri,
     var testedUrl = inputTable.Where(x => x.PartitionKey == q.PartitionKey && x.RowKey == q.RowKey).SingleOrDefault();
     if (testedUrl == null) 
     {
-        log.Info("Cache miss: no match for url.");
+        log.LogInformation("Cache miss: no match for url.");
         return await Test(uri, log, inputTable, outputTable);
     }
     else
     {
-        log.Info("Cache hit: will now check for freshness.");
+        log.LogInformation("Cache hit: will now check for freshness.");
     }
 
     // TODO: Probably push this into a config
@@ -68,12 +69,12 @@ private static async Task<bool?> GetResult(Uri uri,
     var oneWeekAgo = new DateTimeOffset(DateTime.UtcNow.AddDays(-7));
     if (testedUrl.Timestamp >= oneWeekAgo)
     {
-        log.Info("Fresh! Returning from cache.");
+        log.LogInformation("Fresh! Returning from cache.");
         return testedUrl.IsHtml5;
     }
     else
     {
-        log.Info("Stale. Looking up again to replace existing. Timestamp was: " + testedUrl.Timestamp);
+        log.LogInformation("Stale. Looking up again to replace existing. Timestamp was: " + testedUrl.Timestamp);
     }
 
     // Else get a fresh one and store in cache
@@ -81,11 +82,11 @@ private static async Task<bool?> GetResult(Uri uri,
 }
 
 private static async Task<bool?> Test(Uri uri,
-    TraceWriter log,
+    ILogger log,
     IQueryable<TestedUrl> inputTable,
     CloudTable outputTable)
 {
-    log.Info("Testing: " + uri);
+    log.LogInformation("Testing: " + uri);
 
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
     HttpResponseMessage response = null;
@@ -95,7 +96,7 @@ private static async Task<bool?> Test(Uri uri,
         response = await httpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode)
         {
-            log.Info("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
+            log.LogInformation("Error: GET for url '" + uri + "' resulted in status code of '" + response.StatusCode + "'.");
         }
         else
         {
@@ -103,9 +104,9 @@ private static async Task<bool?> Test(Uri uri,
             isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
         }
     }
-    catch (Exception)
+    catch (Exception ex)
     {
-        log.Info("Error: GET for url '" + uri + "' failed with an exception.");
+        log.LogError(ex, "Error: GET for url '" + uri + "' failed with an exception.");
     }
     
     var testedUrl = new TestedUrl(uri, isHtml5);
