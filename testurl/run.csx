@@ -129,7 +129,7 @@ public class TestedUrl : TableEntity
             
     }
 
-    public TestedUrl(Uri uri, bool isHtml5)
+    public TestedUrl(Uri uri, bool? isHtml5)
     {
         this.PartitionKey = uri.Host;
         this.RowKey = Uri.EscapeDataString(uri.ToString());
