@@ -106,14 +106,14 @@ private static async Task<bool?> Test(Uri uri,
     }
     catch (Exception ex)
     {
-        log.LogError(ex, "Error: GET for url '" + uri + "' failed with an exception.");
+        log.LogError(default(EventId), ex, "Error: GET for url '" + uri + "' failed with an exception.");
     }
     
     var testedUrl = new TestedUrl(uri, isHtml5);
 
     log.LogInformation("Caching: " + uri + " with result " + isHtml5.ToString());
     var op = TableOperation.InsertOrReplace(testedUrl);
-    outputTable.ExecuteAsync(op);    
+    await outputTable.ExecuteAsync(op);    
 
     return testedUrl.IsHtml5;
 }
