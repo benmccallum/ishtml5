@@ -15,7 +15,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
     CloudTable outputTable
 )
 {
-    log.Info("TestUrl function was triggered.");
+    log.LogInformation("TestUrl function was triggered.");
 
     // Extract query parameter
     string url = req.GetQueryNameValuePairs()
@@ -25,7 +25,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
     // Check a url param was passed
     if (url == null)
     {
-        log.Info("Validation failed: url param was null.");
+        log.LogInformation("Validation failed: url param was null.");
         return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a url on the query string or in the request body");
     }
 
@@ -36,7 +36,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
         && Uri.TryCreate(url, UriKind.Absolute, out uri);
     if (!isUrl)
     {
-        log.Info("Validation failed: url param was not a real url.");
+        log.LogInformation("Validation failed: url param was not a real url.");
         return req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a valid url");
     }
 
@@ -52,7 +52,7 @@ private static async Task<bool?> GetResult(Uri uri,
 {
     // Try get from cache if recent enough
     var q = new TestedUrl(uri, false);
-    log.Info("Searching for: " + q.PartitionKey + " " + q.RowKey);
+    log.LogInformation("Searching for: " + q.PartitionKey + " " + q.RowKey);
     var testedUrl = inputTable.Where(x => x.PartitionKey == q.PartitionKey && x.RowKey == q.RowKey).SingleOrDefault();
     if (testedUrl == null) 
     {
@@ -111,7 +111,7 @@ private static async Task<bool?> Test(Uri uri,
     
     var testedUrl = new TestedUrl(uri, isHtml5);
 
-    log.Info("Caching: " + uri + " with result " + isHtml5.ToString());
+    log.LogInformation("Caching: " + uri + " with result " + isHtml5.ToString());
     var op = TableOperation.InsertOrReplace(testedUrl);
     outputTable.ExecuteAsync(op);    
 
