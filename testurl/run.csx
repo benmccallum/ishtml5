@@ -22,6 +22,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,
     // Support TLS 1.2 as well...
     System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
+    // Pretend to be a browser with some typical headers
+    httpClient.DefaultRequestHeaders.Accept.Clear();
+    httpClient.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+    httpClient.DefaultRequestHeaders.UserAgent.Clear();
+    httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+    httpClient.DefaultRequestHeaders.AcceptEncoding.Clear();
+    httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+
     // Extract query parameter
     string url = req.GetQueryNameValuePairs()
         .FirstOrDefault(q => string.Compare(q.Key, "url", true) == 0)
