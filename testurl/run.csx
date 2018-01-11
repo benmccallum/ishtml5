@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 // https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices
 // https://docs.microsoft.com/en-us/azure/architecture/antipatterns/improper-instantiation/
 private static HttpClient httpClient = new HttpClient();
-private const int NumberOfRetries = 10;
+private const int NumberOfRetries = 3;
 private const int DelayOnRetry = 1000;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
