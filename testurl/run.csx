@@ -7,7 +7,11 @@ using Microsoft.WindowsAzure.Storage.Table;
 // Re-use HttpClient to avoid port exhaustion 
 // https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices
 // https://docs.microsoft.com/en-us/azure/architecture/antipatterns/improper-instantiation/
-private static HttpClient httpClient = new HttpClient();
+private static HttpClientHandler handler = new HttpClientHandler()
+{
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+};
+private static HttpClient httpClient = new HttpClient(handler);
 private const int NumberOfRetries = 3;
 private const int DelayOnRetry = 1000;
 private const int NumCharsToLog = 50;
