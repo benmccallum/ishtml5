@@ -8,6 +8,8 @@ using Microsoft.WindowsAzure.Storage.Table;
 // https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices
 // https://docs.microsoft.com/en-us/azure/architecture/antipatterns/improper-instantiation/
 private static HttpClient httpClient = new HttpClient();
+private const int NumberOfRetries = 10;
+private const int DelayOnRetry = 1000;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
     ILogger log,
@@ -94,29 +96,43 @@ private static async Task<bool?> Test(Uri uri,
     // Make a web request for that URL document and then "crudely" inspect for doctype declaration
     HttpResponseMessage response = null;
     bool? isHtml5 = null;
-    try
+    for (int i = 1; i <= NumberOfRetries; ++i) 
     {
-        response = await httpClient.GetAsync(uri);
-        if (!response.IsSuccessStatusCode)
-        {
-            log.LogInformation("Error: GET for url '{uri}' failed with status code '{response.StatusCode}'", uri, response.StatusCode);
-        }
-        else
-        {
-            var html = (await response.Content.ReadAsStringAsync()).Trim();
-            isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
-        }
-    }
-    catch (Exception ex)
-    {
-        log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception.", uri);
+      try
+      {
+          response = await httpClient.GetAsync(uri);
+          if (!response.IsSuccessStatusCode)
+          {
+              log.LogInformation("Error: GET for url '{uri}' failed with status code '{response.StatusCode}'", uri, response.StatusCode);
+          }
+          else
+          {
+              var html = (await response.Content.ReadAsStringAsync()).Trim();
+              isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
+          }
+      }
+      catch (Exception ex) when (i < NumberOfRetries)
+      {
+          log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception. Retrying...", uri);
+      }
+      catch (Exception e) 
+      {
+        log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception. Aborting.", uri);
+      }
     }
     
     var testedUrl = new TestedUrl(uri, isHtml5);
 
-    log.LogInformation("Caching: '{uri}' with result '{isHtml5}'", uri, isHtml5);
-    var op = TableOperation.InsertOrReplace(testedUrl);
-    await outputTable.ExecuteAsync(op);    
+    if (testedUrl.isHtml5 != null) 
+    {
+      log.LogInformation("Caching: '{uri}' with result '{isHtml5}'", uri, isHtml5);
+      var op = TableOperation.InsertOrReplace(testedUrl);
+      await outputTable.ExecuteAsync(op);    
+    }
+    else 
+    {
+      log.LogInformation("Skipped caching: '{uri}' with result '{isHtml5}' as there was an error retrieving result.", uri, isHtml5);
+    }    
 
     return testedUrl.IsHtml5;
 }
