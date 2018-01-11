@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 private static HttpClient httpClient = new HttpClient();
 private const int NumberOfRetries = 3;
 private const int DelayOnRetry = 1000;
+private const int NumCharsToLog = 50;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
     ILogger log,
@@ -116,6 +117,7 @@ private static async Task<bool?> Test(Uri uri,
           else
           {
               var html = (await response.Content.ReadAsStringAsync()).Trim();
+              log.LogInformation("First '{NumCharsToLog'} chars are: " + (html.Length > NumCharsToLog ? html.Substring(0, NumCharsToLog - 1));
               isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
           }
       }
