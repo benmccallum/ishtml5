@@ -117,7 +117,7 @@ private static async Task<bool?> Test(Uri uri,
           else
           {
               var html = (await response.Content.ReadAsStringAsync()).Trim();
-              log.LogInformation("First '{NumCharsToLog'} chars are: " + (html.Length > NumCharsToLog ? html.Substring(0, NumCharsToLog - 1)));
+              log.LogInformation("First '{NumCharsToLog}' chars are: " + (html.Length > NumCharsToLog ? html.Substring(0, NumCharsToLog - 1) : html));
               isHtml5 = html.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase);
           }
       }
