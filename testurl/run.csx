@@ -115,9 +115,9 @@ private static async Task<bool?> Test(Uri uri,
       {
           log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception. Retrying...", uri);
       }
-      catch (Exception e) 
+      catch (Exception exc) 
       {
-        log.LogError(default(EventId), ex, "Error: GET for url '{uri}' failed with an exception. Aborting.", uri);
+        log.LogError(default(EventId), exc, "Error: GET for url '{uri}' failed with an exception. Aborting.", uri);
       }
     }
     
