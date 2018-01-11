@@ -123,7 +123,7 @@ private static async Task<bool?> Test(Uri uri,
     
     var testedUrl = new TestedUrl(uri, isHtml5);
 
-    if (testedUrl.isHtml5 != null) 
+    if (testedUrl.IsHtml5 != null) 
     {
       log.LogInformation("Caching: '{uri}' with result '{isHtml5}'", uri, isHtml5);
       var op = TableOperation.InsertOrReplace(testedUrl);
